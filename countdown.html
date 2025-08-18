@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Year Countdown</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f6f9fc;
+            padding-top: 50px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        #countdown {
+            font-size: 2em;
+            margin-top: 20px;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>School‑day Countdown</h1>
+    <p id="description">
+        This counter shows how many school days are left until the last school day
+        (19&nbsp;June&nbsp;2026).  Weekends and school holidays are automatically
+        skipped.
+    </p>
+    <div id="countdown"></div>
+    <div id="passed"></div>
+    <div id="next-holiday"></div>
+
+    <script>
+        // Target date for the end of the school year (ISO format)
+        const startDate = new Date('2025-08-18');
+        const endDate = new Date('2026-06-19');
+
+        /*
+         * Define holiday ranges and individual holiday dates.  Each holiday range
+         * is represented by a pair of strings in ISO YYYY-MM-DD format and is
+         * inclusive.  Individual holidays are also ISO date strings.  These
+         * correspond to the breaks and red days listed in the Asker 2025–2026
+         * school calendar.
+         */
+        const holidayRanges = [
+            ['2025-09-29', '2025-10-03'], // Autumn break
+            ['2025-12-22', '2026-01-02'], // Christmas break
+            ['2026-02-16', '2026-02-20'], // Winter break
+            ['2026-03-30', '2026-04-06'], // Easter break
+        ];
+        const holidayDates = [
+            '2026-05-01', // Labour Day
+            '2026-05-14', // Ascension Day (Kristi himmelfart)
+            '2026-05-15', // Day after Ascension
+            '2026-05-25', // Whit Monday (2. pinsedag)
+            '2026-05-17', // Constitution Day (falls on a weekend in 2026)
+        ];
+
+        // Convert date string (YYYY-MM-DD) to Date object at midnight
+        function toDate(dateString) {
+            const parts = dateString.split('-');
+            return new Date(parts[0], parts[1] - 1, parts[2]);
+        }
+
+        /**
+         * Define all holidays with names and date ranges for finding the next holiday.
+         * Single-day holidays have identical start and end.
+         */
+        const holidays = [
+            { name: 'Autumn break', start: '2025-09-29', end: '2025-10-03' },
+            { name: 'Christmas break', start: '2025-12-22', end: '2026-01-02' },
+            { name: 'Winter break', start: '2026-02-16', end: '2026-02-20' },
+            { name: 'Easter break', start: '2026-03-30', end: '2026-04-06' },
+            { name: 'Labour Day', start: '2026-05-01', end: '2026-05-01' },
+            { name: 'Ascension Day', start: '2026-05-14', end: '2026-05-14' },
+            { name: 'Day after Ascension', start: '2026-05-15', end: '2026-05-15' },
+            { name: 'Whit Monday', start: '2026-05-25', end: '2026-05-25' },
+            { name: 'Constitution Day', start: '2026-05-17', end: '2026-05-17' }
+        ];
+
+        /**
+         * Count the number of school days in a holiday object (weekdays within its range).
+         */
+function countHolidayWeekdays(holiday) {
+    /*
+     * Count the number of weekdays (Monday–Friday) in the holiday period
+     * specified by the given object.  We intentionally do not call
+     * `isHoliday` here because we want to count *every* weekday inside
+     * the holiday’s date range, regardless of whether the day is marked
+     * elsewhere as a holiday.  This ensures that multi-day breaks like
+     * the autumn or winter holiday report the correct length.
+     */
+    const start = toDate(holiday.start);
+    const end = toDate(holiday.end);
+    let count = 0;
+    let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    while (d <= end) {
+        const dow = d.getDay();
+        // Monday is 1, Friday is 5; ignore weekends
+        if (dow >= 1 && dow <= 5) {
+            count++;
+        }
+        d.setDate(d.getDate() + 1);
+    }
+    return count;
+}
+
+        /**
+         * Find the next upcoming holiday that has not started yet.
+         * If currently within a holiday, returns the next one after it.
+         */
+        function getNextHoliday(now) {
+            // Convert now to start-of-day for comparison
+            const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            // Sort holidays by start date
+            const sorted = holidays.slice().sort((a, b) => new Date(a.start) - new Date(b.start));
+            for (const hol of sorted) {
+                const holStart = toDate(hol.start);
+                const holEnd = toDate(hol.end);
+                if (todayDate < holStart) {
+                    return hol;
+                }
+                if (todayDate >= holStart && todayDate <= holEnd) {
+                    // We’re currently in this holiday; skip to next
+                    continue;
+                }
+            }
+            return null;
+        }
+
+        // Check whether a given date is within any holiday range
+        function isWithinRange(d, startStr, endStr) {
+            const start = toDate(startStr);
+            const end = toDate(endStr);
+            return d >= start && d <= end;
+        }
+
+        // Determine whether a given date (object) is a holiday
+        function isHoliday(d) {
+            // Check ranges
+            for (const range of holidayRanges) {
+                if (isWithinRange(d, range[0], range[1])) {
+                    return true;
+                }
+            }
+            // Check individual dates
+            const iso = d.toISOString().slice(0, 10);
+            return holidayDates.includes(iso);
+        }
+
+        /**
+         * Count the number of remaining school days from the given date to the end date.
+         * The first day is only counted if the current time is before the school
+         * closing time.  Monday–Thursday close at 15:00, Friday at 12:20.
+         */
+        function countSchoolDays(from, to) {
+            let count = 0;
+            // Ensure we do not count days before the official start date
+            let current = new Date(Math.max(from.getTime(), startDate.getTime()));
+            while (current <= to) {
+                const dayOfWeek = current.getDay();
+                // Check if current day is a weekday (Mon–Fri)
+                const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+                if (isWeekday && !isHoliday(current)) {
+                    let includeDay = true;
+                    // If current day is the same calendar day as 'from', apply closing time logic
+                    if (current.toDateString() === from.toDateString()) {
+                        const now = from; // from includes current date & time
+                        // Determine closing hour and minute
+                        let closingHour = 15;
+                        let closingMinute = 0;
+                        // Friday (dayOfWeek === 5) closes earlier at 12:20
+                        if (dayOfWeek === 5) {
+                            closingHour = 12;
+                            closingMinute = 20;
+                        }
+                        const closing = new Date(current.getFullYear(), current.getMonth(), current.getDate(), closingHour, closingMinute);
+                        // If current time is after closing time, do not count today
+                        if (now > closing) {
+                            includeDay = false;
+                        }
+                    }
+                    if (includeDay) {
+                        count++;
+                    }
+                }
+                // Move to next calendar day at midnight
+                current.setDate(current.getDate() + 1);
+                current.setHours(0, 0, 0, 0);
+            }
+            return count;
+        }
+
+        // Update the displayed number of school days remaining
+        function updateSchoolDays() {
+            const now = new Date();
+            // If we are before the school start date, show the full total
+            if (now < startDate) {
+                const fullCount = countSchoolDays(startDate, endDate);
+                document.getElementById('countdown').textContent = fullCount + ' school days left';
+                return;
+            }
+            // If we’re past the end date, show zero and a message
+            if (now > endDate) {
+                document.getElementById('countdown').textContent = 'School is out!';
+                return;
+            }
+            const daysLeft = countSchoolDays(now, endDate);
+            // Calculate passed days based on total school days and days left
+            const totalSchoolDays = countSchoolDays(startDate, endDate);
+            const passedDays = totalSchoolDays - daysLeft;
+            document.getElementById('countdown').textContent = daysLeft + ' school day' + (daysLeft === 1 ? '' : 's') + ' left';
+            document.getElementById('passed').textContent = passedDays + ' school day' + (passedDays === 1 ? '' : 's') + ' completed';
+
+            // Update next holiday information
+            const nextHoliday = getNextHoliday(now);
+            if (nextHoliday) {
+                const holLen = countHolidayWeekdays(nextHoliday);
+                const startDateObj = toDate(nextHoliday.start);
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                const startStr = startDateObj.toLocaleDateString(undefined, options);
+                document.getElementById('next-holiday').textContent =
+                    'Next holiday: ' + nextHoliday.name + ' (' + holLen + ' school day' + (holLen === 1 ? '' : 's') + ') starting ' + startStr;
+            } else {
+                document.getElementById('next-holiday').textContent = 'No more holidays before the end of term.';
+            }
+        }
+
+        // Initial update when page loads
+        updateSchoolDays();
+        // Optionally update once per day at midnight
+        // (this sets an interval of one hour to re-evaluate in case the
+        //  page stays open across midnight)
+        setInterval(updateSchoolDays, 3600000);
+    </script>
+</body>
+</html>
