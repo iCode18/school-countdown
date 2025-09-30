@@ -4,33 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Year Countdown</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <style>
+        :root {
+            color-scheme: light;
+        }
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f6f9fc;
-            padding-top: 50px;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, rgba(13, 110, 253, 0.12), transparent 55%),
+                        radial-gradient(circle at bottom, rgba(32, 201, 151, 0.12), transparent 45%),
+                        var(--bs-body-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
         }
-        h1 {
-            color: #2c3e50;
+        .countdown-card {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.9);
         }
-        #countdown {
-            font-size: 2em;
-            margin-top: 20px;
-            color: #e74c3c;
+        .stat-tile {
+            border-radius: 1rem;
+            background-color: rgba(13, 110, 253, 0.08);
+            color: #0d6efd;
+            font-weight: 600;
+            padding: 1.5rem;
+        }
+        .stat-tile:nth-child(2) {
+            background-color: rgba(32, 201, 151, 0.12);
+            color: #198754;
+        }
+        .stat-tile:nth-child(3) {
+            background-color: rgba(111, 66, 193, 0.12);
+            color: #6f42c1;
+        }
+        @media (max-width: 576px) {
+            body {
+                padding: 1.5rem 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>School‑day Countdown</h1>
-    <p id="description">
-        This counter shows how many school days are left until the last school day
-        (19&nbsp;June&nbsp;2026).  Weekends and school holidays are automatically
-        skipped.
-    </p>
-    <div id="countdown"></div>
-    <div id="passed"></div>
-    <div id="next-holiday"></div>
+    <main class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+                <section class="card shadow-lg border-0 countdown-card">
+                    <div class="card-body p-4 p-md-5">
+                        <span class="badge text-bg-primary rounded-pill px-3 py-2 mb-3">Academic year 2025–2026</span>
+                        <h1 class="display-5 fw-bold text-dark mb-3">School‑day Countdown</h1>
+                        <p class="text-secondary lead mb-4" id="description">
+                            Track the school days remaining until the last day of term on
+                            <strong>19&nbsp;June&nbsp;2026</strong>. Weekends and official school holidays are
+                            skipped automatically.
+                        </p>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="stat-tile h-100 d-flex flex-column justify-content-center text-center">
+                                    <span class="text-uppercase small fw-semibold mb-2">Days left</span>
+                                    <span class="fs-2" id="countdown">Calculating…</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-tile h-100 d-flex flex-column justify-content-center text-center">
+                                    <span class="text-uppercase small fw-semibold mb-2">Days completed</span>
+                                    <span class="fs-2" id="passed">Calculating…</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-tile h-100 d-flex flex-column justify-content-center text-center">
+                                    <span class="text-uppercase small fw-semibold mb-2">Next holiday</span>
+                                    <span class="fs-6" id="next-holiday">Checking…</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
 
     <script>
         // Target date for the end of the school year (ISO format)
@@ -83,29 +139,29 @@
         /**
          * Count the number of school days in a holiday object (weekdays within its range).
          */
-function countHolidayWeekdays(holiday) {
-    /*
-     * Count the number of weekdays (Monday–Friday) in the holiday period
-     * specified by the given object.  We intentionally do not call
-     * `isHoliday` here because we want to count *every* weekday inside
-     * the holiday’s date range, regardless of whether the day is marked
-     * elsewhere as a holiday.  This ensures that multi-day breaks like
-     * the autumn or winter holiday report the correct length.
-     */
-    const start = toDate(holiday.start);
-    const end = toDate(holiday.end);
-    let count = 0;
-    let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-    while (d <= end) {
-        const dow = d.getDay();
-        // Monday is 1, Friday is 5; ignore weekends
-        if (dow >= 1 && dow <= 5) {
-            count++;
+        function countHolidayWeekdays(holiday) {
+            /*
+             * Count the number of weekdays (Monday–Friday) in the holiday period
+             * specified by the given object.  We intentionally do not call
+             * `isHoliday` here because we want to count *every* weekday inside
+             * the holiday’s date range, regardless of whether the day is marked
+             * elsewhere as a holiday.  This ensures that multi-day breaks like
+             * the autumn or winter holiday report the correct length.
+             */
+            const start = toDate(holiday.start);
+            const end = toDate(holiday.end);
+            let count = 0;
+            let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            while (d <= end) {
+                const dow = d.getDay();
+                // Monday is 1, Friday is 5; ignore weekends
+                if (dow >= 1 && dow <= 5) {
+                    count++;
+                }
+                d.setDate(d.getDate() + 1);
+            }
+            return count;
         }
-        d.setDate(d.getDate() + 1);
-    }
-    return count;
-}
 
         /**
          * Find the next upcoming holiday that has not started yet.
@@ -193,39 +249,47 @@ function countHolidayWeekdays(holiday) {
             return count;
         }
 
-        // Update the displayed number of school days remaining
-        function updateSchoolDays() {
-            const now = new Date();
-            // If we are before the school start date, show the full total
-            if (now < startDate) {
-                const fullCount = countSchoolDays(startDate, endDate);
-                document.getElementById('countdown').textContent = fullCount + ' school days left';
-                return;
-            }
-            // If we’re past the end date, show zero and a message
-            if (now > endDate) {
-                document.getElementById('countdown').textContent = 'School is out!';
-                return;
-            }
-            const daysLeft = countSchoolDays(now, endDate);
-            // Calculate passed days based on total school days and days left
-            const totalSchoolDays = countSchoolDays(startDate, endDate);
-            const passedDays = totalSchoolDays - daysLeft;
-            document.getElementById('countdown').textContent = daysLeft + ' school day' + (daysLeft === 1 ? '' : 's') + ' left';
-            document.getElementById('passed').textContent = passedDays + ' school day' + (passedDays === 1 ? '' : 's') + ' completed';
-
-            // Update next holiday information
-            const nextHoliday = getNextHoliday(now);
+        function updateNextHolidayMessage(referenceDate) {
+            const displayEl = document.getElementById('next-holiday');
+            const nextHoliday = getNextHoliday(referenceDate);
             if (nextHoliday) {
                 const holLen = countHolidayWeekdays(nextHoliday);
                 const startDateObj = toDate(nextHoliday.start);
                 const options = { year: 'numeric', month: 'short', day: 'numeric' };
                 const startStr = startDateObj.toLocaleDateString(undefined, options);
-                document.getElementById('next-holiday').textContent =
-                    'Next holiday: ' + nextHoliday.name + ' (' + holLen + ' school day' + (holLen === 1 ? '' : 's') + ') starting ' + startStr;
+                displayEl.textContent =
+                    nextHoliday.name + ' (' + holLen + ' school day' + (holLen === 1 ? '' : 's') + ') starting ' + startStr;
             } else {
-                document.getElementById('next-holiday').textContent = 'No more holidays before the end of term.';
+                displayEl.textContent = 'No more holidays before the end of term.';
             }
+        }
+
+        // Update the displayed number of school days remaining
+        function updateSchoolDays() {
+            const now = new Date();
+            const totalSchoolDays = countSchoolDays(startDate, endDate);
+            // If we are before the school start date, show the full total
+            if (now < startDate) {
+                document.getElementById('countdown').textContent = totalSchoolDays + ' school days left';
+                document.getElementById('passed').textContent = '0 school days completed';
+                updateNextHolidayMessage(startDate);
+                return;
+            }
+            // If we’re past the end date, show zero and a message
+            if (now > endDate) {
+                document.getElementById('countdown').textContent = 'School is out!';
+                document.getElementById('passed').textContent = totalSchoolDays + ' school days completed';
+                document.getElementById('next-holiday').textContent = 'Enjoy the break!';
+                return;
+            }
+            const daysLeft = countSchoolDays(now, endDate);
+            // Calculate passed days based on total school days and days left
+            const passedDays = totalSchoolDays - daysLeft;
+            document.getElementById('countdown').textContent = daysLeft + ' school day' + (daysLeft === 1 ? '' : 's') + ' left';
+            document.getElementById('passed').textContent = passedDays + ' school day' + (passedDays === 1 ? '' : 's') + ' completed';
+
+            // Update next holiday information
+            updateNextHolidayMessage(now);
         }
 
         // Initial update when page loads
