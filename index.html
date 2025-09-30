@@ -25,7 +25,7 @@
     <h1>School‑day Countdown</h1>
     <p id="description">
         This counter shows how many school days are left until the last school day
-        (19&nbsp;June&nbsp;2026).  Weekends and school holidays are automatically
+        (20&nbsp;June&nbsp;2025).  Weekends and school holidays are automatically
         skipped.
     </p>
     <div id="countdown"></div>
@@ -34,28 +34,28 @@
 
     <script>
         // Target date for the end of the school year (ISO format)
-        const startDate = new Date('2025-08-18');
-        const endDate = new Date('2026-06-19');
+        const startDate = new Date('2024-08-19');
+        const endDate = new Date('2025-06-20');
 
         /*
          * Define holiday ranges and individual holiday dates.  Each holiday range
          * is represented by a pair of strings in ISO YYYY-MM-DD format and is
          * inclusive.  Individual holidays are also ISO date strings.  These
-         * correspond to the breaks and red days listed in the Asker 2025–2026
+         * correspond to the breaks and red days listed in the Asker 2024–2025
          * school calendar.
          */
         const holidayRanges = [
-            ['2025-09-29', '2025-10-03'], // Autumn break
-            ['2025-12-22', '2026-01-02'], // Christmas break
-            ['2026-02-16', '2026-02-20'], // Winter break
-            ['2026-03-30', '2026-04-06'], // Easter break
+            ['2024-09-30', '2024-10-04'], // Autumn break (week 40)
+            ['2024-12-23', '2025-01-01'], // Christmas break
+            ['2025-02-17', '2025-02-21'], // Winter break (week 8)
+            ['2025-04-14', '2025-04-21'], // Easter break (week 16)
         ];
         const holidayDates = [
-            '2026-05-01', // Labour Day
-            '2026-05-14', // Ascension Day (Kristi himmelfart)
-            '2026-05-15', // Day after Ascension
-            '2026-05-25', // Whit Monday (2. pinsedag)
-            '2026-05-17', // Constitution Day (falls on a weekend in 2026)
+            '2025-05-01', // Labour Day
+            '2025-05-17', // Constitution Day
+            '2025-05-29', // Ascension Day (Kristi himmelfart)
+            '2025-05-30', // Day after Ascension
+            '2025-06-09', // Whit Monday (2. pinsedag)
         ];
 
         // Convert date string (YYYY-MM-DD) to Date object at midnight
@@ -69,43 +69,43 @@
          * Single-day holidays have identical start and end.
          */
         const holidays = [
-            { name: 'Autumn break', start: '2025-09-29', end: '2025-10-03' },
-            { name: 'Christmas break', start: '2025-12-22', end: '2026-01-02' },
-            { name: 'Winter break', start: '2026-02-16', end: '2026-02-20' },
-            { name: 'Easter break', start: '2026-03-30', end: '2026-04-06' },
-            { name: 'Labour Day', start: '2026-05-01', end: '2026-05-01' },
-            { name: 'Ascension Day', start: '2026-05-14', end: '2026-05-14' },
-            { name: 'Day after Ascension', start: '2026-05-15', end: '2026-05-15' },
-            { name: 'Whit Monday', start: '2026-05-25', end: '2026-05-25' },
-            { name: 'Constitution Day', start: '2026-05-17', end: '2026-05-17' }
+            { name: 'Autumn break', start: '2024-09-30', end: '2024-10-04' },
+            { name: 'Christmas break', start: '2024-12-23', end: '2025-01-01' },
+            { name: 'Winter break', start: '2025-02-17', end: '2025-02-21' },
+            { name: 'Easter break', start: '2025-04-14', end: '2025-04-21' },
+            { name: 'Labour Day', start: '2025-05-01', end: '2025-05-01' },
+            { name: 'Constitution Day', start: '2025-05-17', end: '2025-05-17' },
+            { name: 'Ascension Day', start: '2025-05-29', end: '2025-05-29' },
+            { name: 'Day after Ascension', start: '2025-05-30', end: '2025-05-30' },
+            { name: 'Whit Monday', start: '2025-06-09', end: '2025-06-09' }
         ];
 
         /**
          * Count the number of school days in a holiday object (weekdays within its range).
          */
-function countHolidayWeekdays(holiday) {
-    /*
-     * Count the number of weekdays (Monday–Friday) in the holiday period
-     * specified by the given object.  We intentionally do not call
-     * `isHoliday` here because we want to count *every* weekday inside
-     * the holiday’s date range, regardless of whether the day is marked
-     * elsewhere as a holiday.  This ensures that multi-day breaks like
-     * the autumn or winter holiday report the correct length.
-     */
-    const start = toDate(holiday.start);
-    const end = toDate(holiday.end);
-    let count = 0;
-    let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-    while (d <= end) {
-        const dow = d.getDay();
-        // Monday is 1, Friday is 5; ignore weekends
-        if (dow >= 1 && dow <= 5) {
-            count++;
+        function countHolidayWeekdays(holiday) {
+            /*
+             * Count the number of weekdays (Monday–Friday) in the holiday period
+             * specified by the given object.  We intentionally do not call
+             * `isHoliday` here because we want to count *every* weekday inside
+             * the holiday’s date range, regardless of whether the day is marked
+             * elsewhere as a holiday.  This ensures that multi-day breaks like
+             * the autumn or winter holiday report the correct length.
+             */
+            const start = toDate(holiday.start);
+            const end = toDate(holiday.end);
+            let count = 0;
+            let d = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            while (d <= end) {
+                const dow = d.getDay();
+                // Monday is 1, Friday is 5; ignore weekends
+                if (dow >= 1 && dow <= 5) {
+                    count++;
+                }
+                d.setDate(d.getDate() + 1);
+            }
+            return count;
         }
-        d.setDate(d.getDate() + 1);
-    }
-    return count;
-}
 
         /**
          * Find the next upcoming holiday that has not started yet.
