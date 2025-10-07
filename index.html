@@ -167,8 +167,7 @@
             let count = 0;
             // Ensure we do not count days before the official start date
             let current = new Date(Math.max(from.getTime(), startDate.getTime()));
-            const inclusiveEnd = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
-            while (current <= inclusiveEnd) {
+            while (current <= to) {
                 const dayOfWeek = current.getDay();
                 // Check if current day is a weekday (Mon–Fri)
                 const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
@@ -205,41 +204,33 @@
         // Update the displayed number of school days remaining
         function updateSchoolDays() {
             const now = new Date();
-            const totalSchoolDays = countSchoolDays(startDate, endDate);
-            const daysLeft = countSchoolDays(now, endDate);
-
-            let countdownText = '';
-            let passedText = '';
-
-            const totalLabel = totalSchoolDays + ' school day' + (totalSchoolDays === 1 ? '' : 's');
-
+            // If we are before the school start date, show the full total
             if (now < startDate) {
-                countdownText = totalLabel + ' left';
-                passedText = '0 school days completed';
-            } else if (daysLeft <= 0) {
-                countdownText = 'School is out!';
-                passedText = totalLabel + ' completed';
-            } else {
-                const passedDays = totalSchoolDays - daysLeft;
-                countdownText = daysLeft + ' school day' + (daysLeft === 1 ? '' : 's') + ' left';
-                passedText = passedDays + ' school day' + (passedDays === 1 ? '' : 's') + ' completed';
+                const fullCount = countSchoolDays(startDate, endDate);
+                document.getElementById('countdown').textContent = fullCount + ' school days left';
+                return;
             }
+            // If we’re past the end date, show zero and a message
+            if (now > endDate) {
+                document.getElementById('countdown').textContent = 'School is out!';
+                return;
+            }
+            const daysLeft = countSchoolDays(now, endDate);
+            // Calculate passed days based on total school days and days left
+            const totalSchoolDays = countSchoolDays(startDate, endDate);
+            const passedDays = totalSchoolDays - daysLeft;
+            document.getElementById('countdown').textContent = daysLeft + ' school day' + (daysLeft === 1 ? '' : 's') + ' left';
+            document.getElementById('passed').textContent = passedDays + ' school day' + (passedDays === 1 ? '' : 's') + ' completed';
 
-            document.getElementById('countdown').textContent = countdownText;
-            document.getElementById('passed').textContent = passedText;
-
-            if (daysLeft > 0) {
-                const nextHoliday = getNextHoliday(now);
-                if (nextHoliday) {
-                    const holLen = countHolidayWeekdays(nextHoliday);
-                    const startDateObj = toDate(nextHoliday.start);
-                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-                    const startStr = startDateObj.toLocaleDateString(undefined, options);
-                    document.getElementById('next-holiday').textContent =
-                        'Next holiday: ' + nextHoliday.name + ' (' + holLen + ' school day' + (holLen === 1 ? '' : 's') + ') starting ' + startStr;
-                } else {
-                    document.getElementById('next-holiday').textContent = 'No more holidays before the end of term.';
-                }
+            // Update next holiday information
+            const nextHoliday = getNextHoliday(now);
+            if (nextHoliday) {
+                const holLen = countHolidayWeekdays(nextHoliday);
+                const startDateObj = toDate(nextHoliday.start);
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                const startStr = startDateObj.toLocaleDateString(undefined, options);
+                document.getElementById('next-holiday').textContent =
+                    'Next holiday: ' + nextHoliday.name + ' (' + holLen + ' school day' + (holLen === 1 ? '' : 's') + ') starting ' + startStr;
             } else {
                 document.getElementById('next-holiday').textContent = 'No more holidays before the end of term.';
             }
