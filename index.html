@@ -50,68 +50,40 @@
     </style>
 </head>
 <body>
-    <main class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8 col-xl-7">
-                <section class="card shadow-lg border-0 countdown-card">
-                    <div class="card-body p-4 p-md-5">
-                        <span class="badge text-bg-primary rounded-pill px-3 py-2 mb-3">Academic year 2025–2026</span>
-                        <h1 class="display-5 fw-bold text-dark mb-3">School‑day Countdown</h1>
-                        <p class="text-secondary lead mb-4" id="description">
-                            Track the school days remaining until the last day of term on
-                            <strong>19&nbsp;June&nbsp;2026</strong>. Weekends and official school holidays are
-                            skipped automatically.
-                        </p>
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="stat-tile h-100 d-flex flex-column justify-content-center text-center">
-                                    <span class="text-uppercase small fw-semibold mb-2">Days left</span>
-                                    <span class="fs-2" id="countdown">Calculating…</span>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="stat-tile h-100 d-flex flex-column justify-content-center text-center">
-                                    <span class="text-uppercase small fw-semibold mb-2">Days completed</span>
-                                    <span class="fs-2" id="passed">Calculating…</span>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="stat-tile h-100 d-flex flex-column justify-content-center text-center">
-                                    <span class="text-uppercase small fw-semibold mb-2">Next holiday</span>
-                                    <span class="fs-6" id="next-holiday">Checking…</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </main>
+    <h1>School‑day Countdown</h1>
+    <p id="description">
+        This counter shows how many school days are left until the last school day
+        (20&nbsp;June&nbsp;2025).  Weekends and school holidays are automatically
+        skipped.
+    </p>
+    <div id="countdown"></div>
+    <div id="passed"></div>
+    <div id="next-holiday"></div>
 
     <script>
         // Target date for the end of the school year (ISO format)
-        const startDate = new Date('2025-08-18');
-        const endDate = new Date('2026-06-19');
+        const startDate = toDate('2024-08-19');
+        const endDate = toDate('2025-06-20');
 
         /*
          * Define holiday ranges and individual holiday dates.  Each holiday range
          * is represented by a pair of strings in ISO YYYY-MM-DD format and is
          * inclusive.  Individual holidays are also ISO date strings.  These
-         * correspond to the breaks and red days listed in the Asker 2025–2026
+         * correspond to the breaks and red days listed in the Asker 2024–2025
          * school calendar.
          */
         const holidayRanges = [
-            ['2025-09-29', '2025-10-03'], // Autumn break
-            ['2025-12-22', '2026-01-02'], // Christmas break
-            ['2026-02-16', '2026-02-20'], // Winter break
-            ['2026-03-30', '2026-04-06'], // Easter break
+            ['2024-09-30', '2024-10-04'], // Autumn break (week 40)
+            ['2024-12-23', '2025-01-01'], // Christmas break
+            ['2025-02-17', '2025-02-21'], // Winter break (week 8)
+            ['2025-04-14', '2025-04-21'], // Easter break (week 16)
         ];
         const holidayDates = [
-            '2026-05-01', // Labour Day
-            '2026-05-14', // Ascension Day (Kristi himmelfart)
-            '2026-05-15', // Day after Ascension
-            '2026-05-25', // Whit Monday (2. pinsedag)
-            '2026-05-17', // Constitution Day (falls on a weekend in 2026)
+            '2025-05-01', // Labour Day
+            '2025-05-17', // Constitution Day
+            '2025-05-29', // Ascension Day (Kristi himmelfart)
+            '2025-05-30', // Day after Ascension
+            '2025-06-09', // Whit Monday (2. pinsedag)
         ];
 
         // Convert date string (YYYY-MM-DD) to Date object at midnight
@@ -125,15 +97,15 @@
          * Single-day holidays have identical start and end.
          */
         const holidays = [
-            { name: 'Autumn break', start: '2025-09-29', end: '2025-10-03' },
-            { name: 'Christmas break', start: '2025-12-22', end: '2026-01-02' },
-            { name: 'Winter break', start: '2026-02-16', end: '2026-02-20' },
-            { name: 'Easter break', start: '2026-03-30', end: '2026-04-06' },
-            { name: 'Labour Day', start: '2026-05-01', end: '2026-05-01' },
-            { name: 'Ascension Day', start: '2026-05-14', end: '2026-05-14' },
-            { name: 'Day after Ascension', start: '2026-05-15', end: '2026-05-15' },
-            { name: 'Whit Monday', start: '2026-05-25', end: '2026-05-25' },
-            { name: 'Constitution Day', start: '2026-05-17', end: '2026-05-17' }
+            { name: 'Autumn break', start: '2024-09-30', end: '2024-10-04' },
+            { name: 'Christmas break', start: '2024-12-23', end: '2025-01-01' },
+            { name: 'Winter break', start: '2025-02-17', end: '2025-02-21' },
+            { name: 'Easter break', start: '2025-04-14', end: '2025-04-21' },
+            { name: 'Labour Day', start: '2025-05-01', end: '2025-05-01' },
+            { name: 'Constitution Day', start: '2025-05-17', end: '2025-05-17' },
+            { name: 'Ascension Day', start: '2025-05-29', end: '2025-05-29' },
+            { name: 'Day after Ascension', start: '2025-05-30', end: '2025-05-30' },
+            { name: 'Whit Monday', start: '2025-06-09', end: '2025-06-09' }
         ];
 
         /**
@@ -193,6 +165,14 @@
             return d >= start && d <= end;
         }
 
+        // Convert a Date to a YYYY-MM-DD string in the local timezone
+        function toLocalISODate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         // Determine whether a given date (object) is a holiday
         function isHoliday(d) {
             // Check ranges
@@ -202,7 +182,7 @@
                 }
             }
             // Check individual dates
-            const iso = d.toISOString().slice(0, 10);
+            const iso = toLocalISODate(d);
             return holidayDates.includes(iso);
         }
 
@@ -215,7 +195,8 @@
             let count = 0;
             // Ensure we do not count days before the official start date
             let current = new Date(Math.max(from.getTime(), startDate.getTime()));
-            while (current <= to) {
+            const inclusiveEnd = new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59, 59, 999);
+            while (current <= inclusiveEnd) {
                 const dayOfWeek = current.getDay();
                 // Check if current day is a weekday (Mon–Fri)
                 const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
@@ -268,28 +249,43 @@
         function updateSchoolDays() {
             const now = new Date();
             const totalSchoolDays = countSchoolDays(startDate, endDate);
-            // If we are before the school start date, show the full total
-            if (now < startDate) {
-                document.getElementById('countdown').textContent = totalSchoolDays + ' school days left';
-                document.getElementById('passed').textContent = '0 school days completed';
-                updateNextHolidayMessage(startDate);
-                return;
-            }
-            // If we’re past the end date, show zero and a message
-            if (now > endDate) {
-                document.getElementById('countdown').textContent = 'School is out!';
-                document.getElementById('passed').textContent = totalSchoolDays + ' school days completed';
-                document.getElementById('next-holiday').textContent = 'Enjoy the break!';
-                return;
-            }
             const daysLeft = countSchoolDays(now, endDate);
-            // Calculate passed days based on total school days and days left
-            const passedDays = totalSchoolDays - daysLeft;
-            document.getElementById('countdown').textContent = daysLeft + ' school day' + (daysLeft === 1 ? '' : 's') + ' left';
-            document.getElementById('passed').textContent = passedDays + ' school day' + (passedDays === 1 ? '' : 's') + ' completed';
 
-            // Update next holiday information
-            updateNextHolidayMessage(now);
+            let countdownText = '';
+            let passedText = '';
+
+            const totalLabel = totalSchoolDays + ' school day' + (totalSchoolDays === 1 ? '' : 's');
+
+            if (now < startDate) {
+                countdownText = totalLabel + ' left';
+                passedText = '0 school days completed';
+            } else if (daysLeft <= 0) {
+                countdownText = 'School is out!';
+                passedText = totalLabel + ' completed';
+            } else {
+                const passedDays = totalSchoolDays - daysLeft;
+                countdownText = daysLeft + ' school day' + (daysLeft === 1 ? '' : 's') + ' left';
+                passedText = passedDays + ' school day' + (passedDays === 1 ? '' : 's') + ' completed';
+            }
+
+            document.getElementById('countdown').textContent = countdownText;
+            document.getElementById('passed').textContent = passedText;
+
+            if (daysLeft > 0) {
+                const nextHoliday = getNextHoliday(now);
+                if (nextHoliday) {
+                    const holLen = countHolidayWeekdays(nextHoliday);
+                    const startDateObj = toDate(nextHoliday.start);
+                    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                    const startStr = startDateObj.toLocaleDateString(undefined, options);
+                    document.getElementById('next-holiday').textContent =
+                        'Next holiday: ' + nextHoliday.name + ' (' + holLen + ' school day' + (holLen === 1 ? '' : 's') + ') starting ' + startStr;
+                } else {
+                    document.getElementById('next-holiday').textContent = 'No more holidays before the end of term.';
+                }
+            } else {
+                document.getElementById('next-holiday').textContent = 'No more holidays before the end of term.';
+            }
         }
 
         // Initial update when page loads
